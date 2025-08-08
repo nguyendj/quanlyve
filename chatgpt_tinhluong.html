@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Doanh Thu Tuyến Đường Sắt Đô Thị</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        section {
+            margin-bottom: 40px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label, input, select, textarea, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        input, select, textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #dee2e6;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quản Lý Doanh Thu Tuyến Đường Sắt Đô Thị</h1>
+
+    <section>
+        <div class="section-title">Bảng Quyết Toán TVM</div>
+        <label for="maTVM">Mã TVM</label>
+        <input type="text" id="maTVM">
+        <label for="veKhoiTao">Số lượng vé khởi tạo</label>
+        <input type="number" id="veKhoiTao">
+        <label for="tienVon">Tiền vốn xuất</label>
+        <input type="number" id="tienVon">
+        <label for="thuHoiTien">Tổng tiền thu hồi</label>
+        <input type="number" id="thuHoiTien">
+        <button onclick="tinhDoanhThuTVM()">Tính doanh thu TVM</button>
+        <div id="kqTVM"></div>
+    </section>
+
+    <section>
+        <div class="section-title">Bảng Quyết Toán BOM</div>
+        <label for="nhanVien">Tên Nhân Viên</label>
+        <input type="text" id="nhanVien">
+        <label for="ulXuat">Số UL xuất</label>
+        <input type="number" id="ulXuat">
+        <label for="ulBan">Số UL bán</label>
+        <input type="number" id="ulBan">
+        <label for="ulDoanhThu">Doanh thu UL</label>
+        <input type="number" id="ulDoanhThu">
+        <label for="cpuXuat">Số CPU xuất</label>
+        <input type="number" id="cpuXuat">
+        <label for="cpuBan">Số CPU bán</label>
+        <input type="number" id="cpuBan">
+        <label for="cpuDoanhThu">Doanh thu CPU</label>
+        <input type="number" id="cpuDoanhThu">
+        <button onclick="tinhDoanhThuBOM()">Tính doanh thu BOM</button>
+        <div id="kqBOM"></div>
+    </section>
+
+    <section>
+        <div class="section-title">Tổng Hợp Doanh Thu</div>
+        <div id="tongHop"></div>
+    </section>
+
+    <script>
+        function tinhDoanhThuTVM() {
+            const ma = document.getElementById("maTVM").value;
+            const veKhoiTao = parseInt(document.getElementById("veKhoiTao").value || 0);
+            const tienVon = parseInt(document.getElementById("tienVon").value || 0);
+            const thuHoi = parseInt(document.getElementById("thuHoiTien").value || 0);
+            const doanhThu = thuHoi - tienVon;
+
+            const kq = `TVM ${ma}: Doanh thu = ${doanhThu.toLocaleString()} đồng`;
+            document.getElementById("kqTVM").innerText = kq;
+
+            // Lưu vào localStorage
+            let tong = JSON.parse(localStorage.getItem("tongDoanhThu")) || [];
+            tong.push({ loai: "TVM", ma, doanhThu });
+            localStorage.setItem("tongDoanhThu", JSON.stringify(tong));
+            capNhatTongHop();
+        }
+
+        function tinhDoanhThuBOM() {
+            const nhanVien = document.getElementById("nhanVien").value;
+            const ulXuat = parseInt(document.getElementById("ulXuat").value || 0);
+            const ulBan = parseInt(document.getElementById("ulBan").value || 0);
+            const ulDT = parseInt(document.getElementById("ulDoanhThu").value || 0);
+            const cpuXuat = parseInt(document.getElementById("cpuXuat").value || 0);
+            const cpuBan = parseInt(document.getElementById("cpuBan").value || 0);
+            const cpuDT = parseInt(document.getElementById("cpuDoanhThu").value || 0);
+            const doanhThu = ulDT + cpuDT;
+
+            const kq = `BOM ${nhanVien}: Doanh thu = ${doanhThu.toLocaleString()} đồng`;
+            document.getElementById("kqBOM").innerText = kq;
+
+            // Lưu vào localStorage
+            let tong = JSON.parse(localStorage.getItem("tongDoanhThu")) || [];
+            tong.push({ loai: "BOM", ma: nhanVien, doanhThu });
+            localStorage.setItem("tongDoanhThu", JSON.stringify(tong));
+            capNhatTongHop();
+        }
+
+        function capNhatTongHop() {
+            const tong = JSON.parse(localStorage.getItem("tongDoanhThu")) || [];
+            let html = '<table><tr><th>Loại</th><th>Mã / Nhân Viên</th><th>Doanh thu</th></tr>';
+            let tongTien = 0;
+            tong.forEach(item => {
+                html += `<tr><td>${item.loai}</td><td>${item.ma}</td><td>${item.doanhThu.toLocaleString()}</td></tr>`;
+                tongTien += item.doanhThu;
+            });
+            html += `<tr><th colspan="2">Tổng</th><th>${tongTien.toLocaleString()}</th></tr></table>`;
+            document.getElementById("tongHop").innerHTML = html;
+        }
+
+        // Tải dữ liệu khi vào trang
+        window.onload = capNhatTongHop;
+    </script>
+</body>
+</html>
